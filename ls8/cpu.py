@@ -62,6 +62,28 @@ class CPU:
         print()
 
     def run(self):
+        operand_a = self.ram_read(self.pc + 1)
+        operand_b = self.ram_read(self.pc + 2)
+
+        LDI = 0b10000010
+        PRN = 0b01000111
+        HLT = 0b00000001
+
+        running = True
+
+        while running:
+            IR = self.ram[self.pc]
+            if IR == HLT:
+                running = False
+            elif IR == LDI:
+                # Set the value of a register to an integer.
+                self.raw_write(operand_a, operand_b)
+                # Update PC (Program Counter)
+                self.pc += 3
+            elif IR == PRN:
+                print(operand_b)
+                self.pc += 2
+
     def ram_read(self, MAR):
         return self.ram[MAR]
 
