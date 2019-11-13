@@ -9,7 +9,8 @@ class CPU:
     def __init__(self):
         self.ram = [0] * 256
         self.reg = [0] * 8
-        self.pc = 0
+        self.pc = 0  # Program Counter
+        self.reg[7] = 0xF4
 
     def load(self):
         """Load a program into memory."""
@@ -98,6 +99,7 @@ class CPU:
         PRN = 0b01000111
         HLT = 0b00000001
         MUL = 0b10100010
+        instruction_size = 0
 
         running = True
 
@@ -112,13 +114,19 @@ class CPU:
                 # Set the value of a register to an integer.
                 self.raw_write(operand_a, operand_b)
                 # Update PC (Program Counter)
-                self.pc += 3
+                instruction_size = 3
             elif IR == PRN:
                 print(self.reg[operand_a])
-                self.pc += 2
+                instruction_size = 2
             elif IR == MUL:
                 self.alu("MUL", operand_a, operand_b)
-                self.pc += 3
+                instruction_size = 3
+            else:
+                print(f"Unknown Instruction {IR:08b}")
+                sys.exit(1)
+
+            # update instruction size
+            self.pc += instruction_size
 
     def ram_read(self, MAR):
         return self.ram[MAR]
