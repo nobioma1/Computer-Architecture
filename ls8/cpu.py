@@ -121,6 +121,16 @@ class CPU:
             elif IR == MUL:
                 self.alu("MUL", operand_a, operand_b)
                 instruction_size = 3
+            elif IR == PUSH:
+                # decrement SP
+                self.reg[SP] -= 1
+                # value at given register
+                value = self.reg[operand_a]
+                # address Stack pointer is pointing to
+                address = self.reg[SP]
+                self.ram[address] = value
+                #
+                instruction_size = 2
             else:
                 print(f"Unknown Instruction {IR:08b}")
                 sys.exit(1)
