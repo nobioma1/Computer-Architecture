@@ -10,7 +10,8 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0  # Program Counter
-        self.reg[7] = 0xF4
+        self.reg[self.sp] = 0xF4
+        self.sp = 7
 
     def load(self):
         """Load a program into memory."""
@@ -101,7 +102,7 @@ class CPU:
         MUL = 0b10100010
         PUSH = 0b01000101
         POP = 0b01000110
-        SP = 7  # Stack Pointer
+        self.sp = 7  # Stack Pointer
         instruction_size = 0
 
         running = True
@@ -125,19 +126,19 @@ class CPU:
                 self.alu("MUL", operand_a, operand_b)
                 instruction_size = 3
             elif IR == PUSH:
-                # decrement SP
-                self.reg[SP] -= 1
+                # decrement self.sp
+                self.reg[self.sp] -= 1
                 # value at given register
                 value = self.reg[operand_a]
                 # address Stack pointer is pointing to
-                address = self.reg[SP]
+                address = self.reg[self.sp]
                 self.ram[address] = value
                 #
                 instruction_size = 2
             elif IR == POP:
                 # get value
-                self.reg[operand_a] = self.ram_read(self.reg[SP])
-                self.reg[SP] += 1
+                self.reg[operand_a] = self.ram_read(self.reg[self.sp])
+                self.reg[self.sp] += 1
                 instruction_size = 2
             else:
                 print(f"Unknown Instruction {IR:08b}")
