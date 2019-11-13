@@ -99,6 +99,9 @@ class CPU:
         PRN = 0b01000111
         HLT = 0b00000001
         MUL = 0b10100010
+        PUSH = 0b01000101
+        POP = 0b01000110
+        SP = 7  # Stack Pointer
         instruction_size = 0
 
         running = True
@@ -130,6 +133,11 @@ class CPU:
                 address = self.reg[SP]
                 self.ram[address] = value
                 #
+                instruction_size = 2
+            elif IR == POP:
+                # get value
+                self.reg[operand_a] = self.ram_read(self.reg[SP])
+                self.reg[SP] += 1
                 instruction_size = 2
             else:
                 print(f"Unknown Instruction {IR:08b}")
