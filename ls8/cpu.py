@@ -10,8 +10,9 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0  # Program Counter
-        self.reg[self.sp] = 0xF4
         self.sp = 7
+        self.reg[self.sp] = 0xF4
+        self.op_pc = False
 
     def load(self):
         """Load a program into memory."""
@@ -102,10 +103,13 @@ class CPU:
         MUL = 0b10100010
         PUSH = 0b01000101
         POP = 0b01000110
-        self.sp = 7  # Stack Pointer
+        ADD = 0b10100000
+        CALL = 0b01010000
+        RET = 0b00010001
         instruction_size = 0
 
         running = True
+
 
         while running:
             IR = self.ram[self.pc]
@@ -114,17 +118,29 @@ class CPU:
 
             if IR == HLT:
                 running = False
+
             elif IR == LDI:
                 # Set the value of a register to an integer.
                 self.raw_write(operand_a, operand_b)
                 # Update PC (Program Counter)
                 instruction_size = 3
+                self.op_pc = False
+
             elif IR == PRN:
                 print(self.reg[operand_a])
                 instruction_size = 2
+                self.op_pc = False
+
             elif IR == MUL:
                 self.alu("MUL", operand_a, operand_b)
                 instruction_size = 3
+                self.op_pc = False
+
+            elif IR == ADD:
+                self.alu("ADD", operand_a, operand_b)
+                instruction_size = 3
+                self.op_pc = False
+
             elif IR == PUSH:
                 # decrement self.sp
                 self.reg[self.sp] -= 1
@@ -133,19 +149,37 @@ class CPU:
                 # address Stack pointer is pointing to
                 address = self.reg[self.sp]
                 self.ram[address] = value
-                #
                 instruction_size = 2
+                self.op_pc = False
+
             elif IR == POP:
                 # get value
                 self.reg[operand_a] = self.ram_read(self.reg[self.sp])
                 self.reg[self.sp] += 1
                 instruction_size = 2
+                self.op_pc = False
+
+            elif IR == CALL:
+                self.reg[self.sp] -= 1  # Decrement Stack Pointer
+                # Push return location to stack
+                self.ram[self.reg[self.sp]] = self.pc + 2
+                # set pc to subroutine
+                self.pc = self.reg[operand_a]
+                self.op_pc = True
+                instruction_size = 2
+
+            elif IR == RET:
+                self.pc = self.ram_read(self.reg[self.sp])
+                self.reg[self.sp] += 1
+                self.op_pc = True
+
             else:
                 print(f"Unknown Instruction {IR:08b}")
                 sys.exit(1)
 
             # update instruction size
-            self.pc += instruction_size
+            if not self.op_pc:
+                self.pc += instruction_size
 
     def ram_read(self, MAR):
         return self.ram[MAR]
